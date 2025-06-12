@@ -1,0 +1,134 @@
+#!usr/bin/env python
+
+import argparse
+import os
+import ast
+import sys
+
+from brainmaskQC import __version__
+from brainmaskQC.cli import run
+
+
+def main(args=None):
+    parser = argparse.ArgumentParser(
+        prog=f"MAIN_Entry v{__version__}",
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="Description goes here.\n\n",
+    )
+    parser.add_argument(
+        "--source_dir",
+        type=str,
+        required=True,
+        help="Specify the source directory of the masks.",
+    )
+    parser.add_argument(
+        "--mask_pattern",
+        type=str,
+        default=".*",
+        help="Give regex to specify the pattern of the mask files.",
+    )
+    parser.add_argument(
+        "--csv_dir",
+        type=str,
+        required=True,
+        help="Specify where the resulting csv files with r values should be stored."
+    )
+    parser.add_argument(
+        "--save_features_to",
+        type=str,
+        required=True,
+        help="Give a file path where the extracted features should be saved to.",
+    )
+    parser.add_argument(
+        "--load_features_from",
+        type=str,
+        default="",
+        help="Give a file path where the extracted features should be loaded from. \
+            Will default to save_features_to parameter if none is provided.",
+    )
+    parser.add_argument(
+        "--override",
+        type=int,
+        default=0,
+        help="If 0, don't overwride features from file it's loaded. Otherwise overwrite features.",
+    )
+    parser.add_argument(
+        "--cluster_range",
+        nargs="+",
+        type=int,
+        required=True,
+        help="Give two integers to specify the range in which the ideal number \
+            of clusters will be searched inclusively.",
+    )
+    parser.add_argument(
+        "--gt_regex",
+        type=str,
+        required=True,
+        help="Regex describing the ground truth set.",
+    )
+    parser.add_argument(
+        "--qc_set_ids",
+        nargs="+",
+        type=str,
+        default=[],
+        help="Identifying name for referencing the set that needs to be QC'd.",
+    )
+    parser.add_argument(
+        "--qc_set_regexs",
+        nargs="+",
+        type=str,
+        default=[],
+        help="Regex for the set of files that should be QC'd.",
+    )
+    parser.add_argument(
+        "--nth_percentile",
+        type=int,
+        default=90,
+        help="Provide an integer to establish percentile cutoff during r calcuation.",
+    )
+    parser.add_argument(
+        "--min_ratio",
+        type=float,
+        default=0.75,
+        help="Give weighting to min mahalanobis distance ratio during r calcuation.",
+    )
+    parser.add_argument(
+        "--wmean_ratio",
+        type=float,
+        default=0.25,
+        help="Give weighting to weighted mean mahalanobis distance ratio during r calcuation.",
+    )
+    parser.add_argument(
+        "--median_ratio",
+        type=float,
+        default=0,
+        help="Give weighting to median mahalanobis distance ratio during r calcuation.",
+    )
+    parser.add_argument(
+        "--n_workers",
+        type=int,
+        default=12,
+        help="Number of subprocesses used during feature extraction and clustering.",
+    )
+    parser.add_argument(
+        "--n_iterations",
+        type=int,
+        default=200,
+        help="Sets the number of iterations for Rand score clustering.",
+    )
+
+    args = parser.parse_args(args)
+
+    assert len(args.qc_set_ids) == len(args.qc_set_regexs)
+
+    if len(args.qc_set_ids) == 0:
+        args.qc_set_ids = ["results"]
+        args.qc_set_regexs = [f"(?!({args.gt_regex}))"]
+
+    run(args)
+
+    print("Finished.")
+
+
+if __name__ == "__main__":
+    main()

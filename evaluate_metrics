@@ -1,0 +1,67 @@
+#!usr/bin/env python
+
+import argparse
+import os
+import ast
+import sys
+
+from brainmaskQC import __version__
+from brainmaskQC.cli import evaluate_metrics
+
+
+def main(args=None):
+    parser = argparse.ArgumentParser(
+        prog=f"MAIN_Entry v{__version__}",
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="Description goes here.\n\n",
+    )
+    parser.add_argument(
+        "--result_file",
+        type=str,
+        required=True,
+        help="Provide filepath to csv containing r values.",
+    )
+    parser.add_argument(
+        "--metrics_file",
+        type=str,
+        required=True,
+        help="Provide filepath where the metrics of all sets should be saved in a single csv.",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        required=True,
+        help="Provide directory path for the output csv files that will contain TP, TN, FP, and FN labels for every subject of the sets.",
+    )
+    parser.add_argument(
+        "--set",
+        nargs="+",
+        type=str,
+        default=[".*"],
+        help="Provide filepath to csv files or regexs that describes the sets that needs analysis.",
+    )
+    parser.add_argument(
+        "--set_id",
+        nargs="+",
+        type=str,
+        default=["result"],
+        help="Give identifier for sets",
+    )
+    parser.add_argument(
+        "--ground_truth",
+        type=str,
+        default=".*",
+        help="Provide filepath to csv file or regex that captures all filenames of ground truth subjects within the set.",
+    )
+
+    args = parser.parse_args(args)
+
+    assert len(args.set) == len(args.set_id)
+
+    evaluate_metrics(args)
+
+    print("Finished.")
+
+
+if __name__ == "__main__":
+    main()
